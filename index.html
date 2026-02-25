@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PulsePoint CIS</title>
+    <style>
+        body{font-family: Arial; 
+              margin: 0; 
+              display: flex;
+            }
+
+        nav { width: 180px; 
+              background: #222; 
+              color: white; 
+              padding: 20px; 
+              height: 100vh; 
+              position: fixed; 
+            }
+        nav a { color: white; 
+                display: block; 
+                margin: 10px 0; 
+                text-decoration: none; 
+            }
+
+        main { margin-left: 200px; 
+               padding: 20px; 
+               width: 100%; 
+            }
+
+        .grid { display: grid; 
+                grid-template-columns: repeat(2,1fr); 
+                gap: 15px; 
+            }
+        .card { border: 1px solid #ddd; 
+                padding: 15px; 
+                border-radius: 8px; 
+                background: #f8f8f8; 
+            }
+
+        #loginBox { width: 300px; 
+                    margin: 100px auto; 
+                    border: 1px solid #ccc; 
+                    padding: 20px; 
+                    border-radius: 5px; 
+                }
+        input { width: 100%; 
+                padding: 8px; 
+                margin: 5px 0; 
+            }
+        .hidden { display: none; }
+        .red { color: red; }
+        .orange { color: orange; }
+        .green { color: green; }
+        
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h2>Menu</h2>
+        <a href="#" onclick="showPage('nursePage')">Nurse Page</a>
+        <a href="#" onclick="showPage('adminPage')">Admin Page</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+
+    <main>
+        <h1 align="center">Welcome to Pulsepoint CIS</h1>
+        <div id="loginBox">
+            <h2>Secure Login</h2>
+            <input id="practID" placeholder="Practitioner ID">
+            
+            <input id="password" placeholder="Password" type="password">
+            <button onclick="togglePass()">👁 Show/Hide</button>
+
+            <p id="strengthMsg"></p>
+
+            <button onclick="login()">Login</button>
+        </div>
+
+        <!-- nures page -->
+        <div id="nursePage" class="hidden">
+            <h1>Nurse Dashboard</h1>
+
+            <div class="grid">
+                <div class="card">Patient Alerts: 12</div>
+                <div class="card">Bed Availability: 5 free beds</div>
+                <div class="card">Medication Orders: 18</div>
+                <div class="card">Database Status: Connected</div>
+            </div>
+            <br>
+            <button onclick="goAdmin()">Go to Admin Page</button>
+        </div>
+        <!-- admin page -->
+        <div id="adminPage" class="hidden">
+            <h1>Admin Dashboard</h1>
+            <p><b>Hidden Staff List:</b></p>
+            <ol>
+                <li>Staff A</li>
+                <li>Staff B</li>
+                <li>Staff C</li>
+            </ol>
+            <button onclick="showPage('nursePage')">Back to Nurse Page</button>
+        </div>
+    </main>
+  
+    <script>
+
+        window.onload = function() {
+            let role = getCookie("active_role");
+            if (role === "Nurse") { showPage("nursePage"); hideLogin(); }
+            if (role === "Admin") { showPage("adminPage"); hideLogin(); }
+        };
+
+        document.getElementById("password").addEventListener("input", function() {
+            let p = this.value;
+            let msg = document.getElementById("strengthMsg");
+
+            let rules = 0;
+            if (p.length >= 8) rules++;
+            if (/[0-9]/.test(p)) rules++;
+            if (/[A-Z]/.test(p)) rules++;
+            if (/[@$!%*?&]/.test(p)) rules++;
+
+            if (rules <= 1) { msg.textContent = "Weak"; msg.className = "red"; }
+            else if (rules == 2) { msg.textContent = "Medium"; msg.className = "orange"; }
+            else if (rules > 3) { msg.textContent = "Strong"; msg.className = "green"; }
+        });
+
+        function togglePass() {
+            let p = document.getElementById("password");
+            p.type = p.type === "password" ? "text" : "password";
+        }
+        // login
+        function login() {
+            let id = document.getElementById("practID").value;
+            let pass = document.getElementById("password").value;
+
+            if (!id || !pass) return alert("Enter ID + Password");
+
+            if (id.startsWith("N")) {
+                document.cookie = "active_role=Nurse";
+                showPage("nursePage");
+                hideLogin();
+            } else if (id.startsWith("A")) {
+                document.cookie = "active_role=Admin";
+                showPage("adminPage");
+                hideLogin();
+            } else {
+                alert("Invalid ID");
+            }
+        }
+
+        function goAdmin() {
+            let role = getCookie("active_role");
+            if (role !== "Admin") {
+                alert("Access Denied");
+                showPage("nursePage");
+            } else {
+                showPage("adminPage");
+            }
+        }
+
+        function getCookie(name) {
+            let match = document.cookie.match(new RegExp(name + "=([^;]+)"));
+            return match ? match[1] : null;
+        }
+
+        function showPage(page) {
+            document.getElementById("nursePage").classList.add("hidden");
+            document.getElementById("adminPage").classList.add("hidden");
+            document.getElementById(page).classList.remove("hidden");
+        }
+
+        function hideLogin() {
+            document.getElementById("loginBox").classList.add("hidden");
+        }
+
+        function logout() {
+            document.cookie = "active_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            location.reload();
+        }
+    </script>
+</body>
+</html>
